@@ -14,7 +14,7 @@ from openpyxl import load_workbook
 st.set_page_config(page_icon="🚀", page_title="SnowTransport: Load file into Snowflake", layout="wide", initial_sidebar_state="expanded")
 
 #login form and Snowflake connection
-session = st.connection.snowflake.login({'account': 'SFSENORTHAMERICA-VA_DEMO99', 'user': 'TOM', 'password': '2Bgwn0mhgb4sno!!'
+session = st.connection.snowflake.login({'account': 'ORGNAME-ACCOUNTNAME', 'user': '', 'password': ''
                                         }, {'warehouse': '','database': '', 'schema': ''}, 'Snowflake Login')
 
 @st.cache
