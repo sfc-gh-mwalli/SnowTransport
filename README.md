@@ -1,7 +1,7 @@
 # SnowTransport
 
 
-###Faster Solver
+### Faster Solver
 Use libmamba for a much faster solver
 
 First, make sure you are running conda 4.12.0 or higher:
