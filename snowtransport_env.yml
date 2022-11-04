@@ -1,0 +1,15 @@
+name: snowtransport_env
+channels:
+  - snowflake
+  - conda-forge
+dependencies:
+  - python=3.8
+  - pip
+  - snowflake-snowpark-python
+  - pandas
+  - openpyxl
+  - numpy
+  - streamlit
+  - pip:
+    - -r requirements.txt
+  
