@@ -1,5 +1,8 @@
 # SnowTransport
 
+CSV and Excel File uploader for Snowflake
+
+## To Install
 
 ### Faster Solver
 Use libmamba for a much faster solver
