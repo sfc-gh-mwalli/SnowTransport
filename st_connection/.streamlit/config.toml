@@ -6,3 +6,9 @@ base = "dark"
 # Max size, in megabytes, for files uploaded with the file_uploader.
 # Default: 200
 maxUploadSize = 300
+
+[client]
+# Controls whether uncaught app exceptions are displayed in the browser. By default, this is set to True and Streamlit displays app exceptions and associated tracebacks in the browser.
+# If set to False, an exception will result in a generic message being shown in the browser, and exceptions and tracebacks will be printed to the console only.
+# Default: true
+showErrorDetails = False
