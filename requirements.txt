@@ -1,1 +1,2 @@
 streamlit-aggrid
+st-annotated-text
