@@ -1,4 +1,4 @@
-#imports
+# imports
 import json
 import st_connection
 import st_connection.snowflake
@@ -13,40 +13,53 @@ from annotated_text import annotated_text
 from openpyxl import load_workbook
 
 ########## Use wide layout ##########
-st.set_page_config(page_icon="🚀", page_title="SnowTransport: Load a file into Snowflake", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_icon="🚀", page_title="SnowTransport: Load a file into Snowflake",
+                   layout="wide", initial_sidebar_state="expanded")
 
 ########## login form and Snowflake connection ##########
 session = st.connection.snowflake.login()
 
 ########## functions ##########
+
+
 def get_curr_role():
-    crole = pd.DataFrame(session.sql('select current_role() as "name" ').collect())
+    crole = pd.DataFrame(session.sql(
+        'select current_role() as "name" ').collect())
     crole = crole[["name"]]
     return crole
 
+
 def get_curr_wh():
-    cwh = pd.DataFrame(session.sql('select current_warehouse() as "name" ').collect())
+    cwh = pd.DataFrame(session.sql(
+        'select current_warehouse() as "name" ').collect())
     cwh = cwh[["name"]]
     return cwh
 
+
 def get_curr_db():
-    cdb = pd.DataFrame(session.sql('select current_database() as "name" ').collect())
+    cdb = pd.DataFrame(session.sql(
+        'select current_database() as "name" ').collect())
     cdb = cdb[["name"]]
     return cdb
 
+
 def get_curr_sc():
-    csc = pd.DataFrame(session.sql('select current_schema() as "name" ').collect())
+    csc = pd.DataFrame(session.sql(
+        'select current_schema() as "name" ').collect())
     csc = csc[["name"]]
     return csc
 
+
 def get_avail_roles():
-        query_roles = pd.DataFrame(session.sql('select CURRENT_AVAILABLE_ROLES() as AROLES').collect())
-        roles_as_list = json.loads(query_roles.iloc[0,0])
-        allroles = pd.DataFrame (roles_as_list, columns = ['name'])
-        roles = allroles[["name"]]
-        #print(roles)
-        return roles
-    
+    query_roles = pd.DataFrame(session.sql(
+        'select CURRENT_AVAILABLE_ROLES() as AROLES').collect())
+    roles_as_list = json.loads(query_roles.iloc[0, 0])
+    allroles = pd.DataFrame(roles_as_list, columns=['name'])
+    roles = allroles[["name"]]
+    # print(roles)
+    return roles
+
+
 def read_sheet(uploaded_file, file_type='xlsx', str_sheetname="", col_list=None, date_col_list=False):
     dataframe = ""
     try:
@@ -65,74 +78,82 @@ def read_sheet(uploaded_file, file_type='xlsx', str_sheetname="", col_list=None,
     finally:
         return dataframe
 
+
 def get_sheetnames(upload_file):
     wb = load_workbook(upload_file, read_only=True, keep_links=False)
     return wb.sheetnames
-    
+
+
 ########## sidebar ##########
 with st.sidebar:
     ########## Role select ##########
-        roles_for_select = get_avail_roles()
-        current_role = get_curr_role()
-        idx = int(roles_for_select[roles_for_select['name']==current_role].index[0])
-        #print(roles_for_select)
-        role_select = st.selectbox("Role:", 
-                                    roles_for_select, 
-                                    help="💡 Choose from your available roles. Tip: It is best practice to not use accountadmin",
-                                    index=idx
-                                    )
-        if role_select:
-            session.use_role(role_select)
-            
-        ########## Warehouse select ##########
-        warehouses = pd.DataFrame(session.sql('SHOW WAREHOUSES').collect())[['name']]
-        if not warehouses.empty:
-            select_wh = st.selectbox("Warehouse:",
+    roles_for_select = get_avail_roles()
+    current_role = get_curr_role()
+    idx = int(
+        roles_for_select[roles_for_select['name'] == current_role].index[0])
+    # print(roles_for_select)
+    role_select = st.selectbox("Role:",
+                               roles_for_select,
+                               help="💡 Choose from your available roles. Tip: It is best practice to not use accountadmin",
+                               index=idx
+                               )
+    if role_select:
+        session.use_role(role_select)
+
+    ########## Warehouse select ##########
+    warehouses = pd.DataFrame(session.sql(
+        'SHOW WAREHOUSES').collect())[['name']]
+    if not warehouses.empty:
+        select_wh = st.selectbox("Warehouse:",
                                  pd.unique(warehouses['name']),
                                  help='💡 Choices depend on the privileges of selected role',
                                  key='warehouse_select')
-            if(select_wh):
-                try:
-                    session.use_warehouse(select_wh)
-                except:
-                    st.error('Warehouse privlage error: Please select a different warehouse', icon="🚨")
-                    st.stop()
-        else:
-            select_wh = st.selectbox("Warehouse:",('None Available'),disabled=True)
-            st.stop()
+        if (select_wh):
+            try:
+                session.use_warehouse(select_wh)
+            except:
+                st.error(
+                    'Warehouse privlage error: Please select a different warehouse', icon="🚨")
+                st.stop()
+    else:
+        select_wh = st.selectbox(
+            "Warehouse:", ('None Available'), disabled=True)
+        st.stop()
 
-        ########## Database Select ##########
-        databases = pd.DataFrame(session.sql('SHOW DATABASES').collect())
-        #filter out remote databases
-        databases = databases[databases['origin'] == '']
-        if not databases.empty:
-            select_db=st.selectbox("Database:",
-                              databases['name'], 
-                              help='💡 Choices depend on the privileges of selected role',
-                              key='database_select')
-            if(select_db):
-                try:
-                    session.use_database(select_db)
-                except:
-                    st.warning('Database privlage error: Please select a different database', icon="🚨")
-                    st.stop()
-        else:
-            select_db = st.selectbox("Database:",('None Available'), disabled=True)
-            st.warning('This role has no databases available', icon="🚨")
-            st.stop()
+    ########## Database Select ##########
+    databases = pd.DataFrame(session.sql('SHOW DATABASES').collect())
+    # filter out remote databases
+    databases = databases[databases['origin'] == '']
+    if not databases.empty:
+        select_db = st.selectbox("Database:",
+                                 databases['name'],
+                                 help='💡 Choices depend on the privileges of selected role',
+                                 key='database_select')
+        if (select_db):
+            try:
+                session.use_database(select_db)
+            except:
+                st.warning(
+                    'Database privlage error: Please select a different database', icon="🚨")
+                st.stop()
+    else:
+        select_db = st.selectbox(
+            "Database:", ('None Available'), disabled=True)
+        st.warning('This role has no databases available', icon="🚨")
+        st.stop()
 
-        ########## Schema select ##########
-        schemas = pd.DataFrame(session.sql('SHOW SCHEMAS').collect())
-        #filter out information schema
-        schemas = schemas[schemas['name'] != 'INFORMATION_SCHEMA']
-        schema=st.selectbox("Schema:",
-                            schemas['name'], 
-                            help='💡 Choices depend on the selected database',
-                            key='schema_select')
-        if(schema):
-            session.use_schema(schema)
+    ########## Schema select ##########
+    schemas = pd.DataFrame(session.sql('SHOW SCHEMAS').collect())
+    # filter out information schema
+    schemas = schemas[schemas['name'] != 'INFORMATION_SCHEMA']
+    schema = st.selectbox("Schema:",
+                          schemas['name'],
+                          help='💡 Choices depend on the selected database',
+                          key='schema_select')
+    if (schema):
+        session.use_schema(schema)
 
-        
+
 ########## custom animated background style ##########
 st.write("""
 <style>
@@ -175,15 +196,16 @@ button[data-baseweb="tab"] {
 
 ########## display current context ##########
 annotated_text(
-    (get_curr_role()['name'].iloc[0] ,"current role","#F96815"),
-    (get_curr_wh()['name'].iloc[0], "current warehouse","#000C66"),
-    (get_curr_db()['name'].iloc[0], "current database","#570861"),
+    (get_curr_role()['name'].iloc[0], "current role", "#F96815"),
+    (get_curr_wh()['name'].iloc[0], "current warehouse", "#000C66"),
+    (get_curr_db()['name'].iloc[0], "current database", "#570861"),
     (get_curr_sc()['name'].iloc[0], "current schema", "#023020")
 )
 st.info("👈 Set your context via the sidebar.")
 
 ########## Tabs ##########
-tab1, tab2 = st.tabs(["\u2001 Upload a file \u2001", "\u2001 Explore Tables \u2001"])
+tab1, tab2 = st.tabs(["\u2001 Upload a file \u2001",
+                     "\u2001 Explore Tables \u2001"])
 st.write(tabs_font_css, unsafe_allow_html=True)
 
 with tab1:
@@ -202,7 +224,7 @@ with tab1:
             excel_sheets = get_sheetnames(uploaded_file)
             excel_sheets_mod = ("Select Sheet", *excel_sheets)
             sheet = st.selectbox("Select a Workbook Sheet",
-                                excel_sheets_mod, help="Select a sheet from this list")
+                                 excel_sheets_mod, help="Select a sheet from this list")
             if sheet != "Select Sheet":
                 shows = read_sheet(uploaded_file, 'xls', sheet)
             else:
@@ -210,10 +232,11 @@ with tab1:
     else:
         st.info("👆 Upload a csv, xlsx, or xls file from your local system.")
         st.stop()
-            
+
     ########## Setup AG Grid ##########
     gb = GridOptionsBuilder.from_dataframe(shows)
-    gb.configure_default_column(enablePivot=True, enableValue=True, enableRowGroup=True, editable=True, groupable=True)
+    gb.configure_default_column(
+        enablePivot=True, enableValue=True, enableRowGroup=True, editable=True, groupable=True)
     gb.configure_side_bar()
     gb.configure_pagination(
         enabled=True, paginationAutoPageSize=False, paginationPageSize=20)
@@ -241,7 +264,8 @@ with tab1:
             done = False
             with st.spinner(text="Creating Table in Snowflake..."):
                 try:
-                    snowpark_df = session.write_pandas(df, tablname.upper(), auto_create_table=True)
+                    snowpark_df = session.write_pandas(
+                        df, tablname.upper(), auto_create_table=True)
                     st.success("TABLE CREATED!", icon="✅")
                     desc = snowpark_df.describe()
                     if desc:
@@ -250,9 +274,9 @@ with tab1:
                             st.success("Summary Stats complete!", icon="✅")
                             st.snow()
                 except:
-                    st.error("⚠️ It looks like you don't have privlages to create or overwite a table in this schema. Check your role and try again.")
-                
+                    st.error(
+                        "⚠️ It looks like you don't have privlages to create or overwite a table in this schema. Check your role and try again.")
+
 ########## tab2 ##########
 with tab2:
     st.write("Coming soon...")
-          
